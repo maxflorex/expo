@@ -1,23 +1,45 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
 import { TextInput } from 'react-native-gesture-handler'
-import { saveTask } from '../api'
+import { getTask, saveTask, updateTask } from '../api'
 
-const TaskFormScreen = ({ navigation }) => {
+const TaskFormScreen = ({ navigation, route }) => {
 
     const [task, setTask] = useState({
         title: '',
         description: ''
     })
 
+    const [editing, setEditing] = useState(false)
+
     const handleChange = (name, value) => setTask({ ...task, [name]: value })
 
-    const handleSubmit = () => {
-        saveTask(task)
-        navigation.navigate('Home')
+    const handleSubmit = async () => {
+        try {
+            if (!editing) {
+                saveTask(task)
+            } else {
+                updateTask(route.params.id, task)
+            }
+            navigation.navigate('Home')
+        } catch (error) {
+            console.log(error);
+        }
     }
 
+
+    useEffect(() => {
+        if (route.params && route.params.id) {
+            setEditing(true)
+            navigation.setOptions({ headerTitle: 'Updating a Task' });
+
+            (async () => {
+                const task = await getTask(route.params.id)
+                setTask({ title: task.title, description: task.description })
+            })()
+        }
+    }, [])
 
     return (
         <Layout>
@@ -26,16 +48,26 @@ const TaskFormScreen = ({ navigation }) => {
                 placeholderTextColor='#ffffff50'
                 style={styles.input}
                 onChangeText={(text) => handleChange('title', text)}
+                value={task.title}
             />
             <TextInput
                 placeholder="Write a Description"
                 placeholderTextColor='#ffffff50'
                 style={styles.input}
                 onChangeText={(text) => handleChange('description', text)}
+                value={task.description}
             />
-            <TouchableOpacity style={styles.buttonSave} onPress={handleSubmit}>
-                <Text style={styles.buttonText} >Save Task</Text>
-            </TouchableOpacity>
+
+            {!editing ? (
+                <TouchableOpacity style={styles.buttonSave} onPress={handleSubmit}>
+                    <Text style={styles.buttonText} >Save Task</Text>
+                </TouchableOpacity>
+
+            ) : (
+                <TouchableOpacity style={styles.buttonUpdate} onPress={handleSubmit}>
+                    <Text style={styles.buttonText} >Update Task</Text>
+                </TouchableOpacity>
+            )}
         </Layout>
     )
 }
@@ -63,6 +95,15 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#ffffff',
         textAlign: 'center'
+    },
+    buttonUpdate: {
+        padding: 10,
+        paddingBottom: 10,
+        borderRadius: 5,
+        marginBottom: 3,
+        backgroundColor: "#e58e26",
+        width: '90%'
+
     }
 })
 

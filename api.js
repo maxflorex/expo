@@ -5,6 +5,11 @@ export const getTasks = async () => {
     return await res.json()
 }
 
+export const getTask = async (taskId) => {
+    const res = await fetch(`${API}/${taskId}`)
+    return await res.json()
+}
+
 export const saveTask = async (newTask) => {
     const res = await fetch(API, {
         method: 'POST',
@@ -12,4 +17,19 @@ export const saveTask = async (newTask) => {
         body: JSON.stringify(newTask)
     })
     return await res.json()
+}
+
+export const deleteTask = async (id) => {
+    await fetch(`${API}/${id}`, {
+        method: "DELETE",
+    })
+}
+
+export const updateTask = async (id, newTask) => {
+    const res = await fetch(`${API}/${id}`, {
+        method: 'PUT',
+        headers: { Accept: 'application/json', "Content-Type": 'application/json' },
+        body: JSON.stringify(newTask)
+    })
+    return res
 }
